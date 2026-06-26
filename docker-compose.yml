@@ -1,0 +1,14 @@
+services:
+  chroma:
+    image: chromadb/chroma:0.5.23
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.chroma:/chroma/chroma
+    restart: unless-stopped
+
+  docling-serve:
+    image: quay.io/docling-project/docling-serve:latest
+    ports:
+      - "5001:5001"
+    restart: unless-stopped

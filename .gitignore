@@ -141,3 +141,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Docker volumes
+.chroma/
+
+# Generated data files
+data/strategiya-2026-2028.md
