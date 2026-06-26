@@ -34,8 +34,14 @@ app.post("/api/ask", async (req, res) => {
 });
 
 async function main() {
-  console.log("Будую базу знань (індексація)...");
-  const retriever = await buildRetriever();
+  console.log("Підключаюся до векторної БД...");
+  let retriever;
+  try {
+    retriever = await buildRetriever();
+  } catch (err) {
+    console.error((err as Error).message);
+    process.exit(1);
+  }
   chain = await createRagChain(retriever);
 
   app.listen(PORT, () => {
