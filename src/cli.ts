@@ -11,13 +11,17 @@ import { stdin as input, stdout as output } from "node:process";
 import { buildRetriever, createRagChain, ask } from "./rag.js";
 
 async function main() {
-  console.log(
-    "Будую базу знань (індексація)... перший запуск завантажить модель embeddings (~30 МБ).",
-  );
-  const retriever = await buildRetriever();
+  console.log("Підключаюся до векторної БД...");
+  let retriever;
+  try {
+    retriever = await buildRetriever();
+  } catch (err) {
+    console.error((err as Error).message);
+    process.exit(1);
+  }
   const chain = await createRagChain(retriever);
 
-  console.log("Готово! Став питання (порожній рядок або Ctrl+C — вихід).\n");
+  console.log("Готово! Став питання про Стратегію розвитку 2026–2028 (порожній рядок або Ctrl+C — вихід).\n");
 
   const rl = createInterface({ input, output });
   while (true) {

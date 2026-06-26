@@ -4,72 +4,52 @@
  * Тут зосереджена вся логіка LangChain. І CLI, і Express-сервер користуються
  * цими ж функціями — UI лише викликає API. Дві фази:
  *
- *   1) Індексація  (buildRetriever):  faq.md → чанки → embeddings → vector store
- *   2) Запит       (ask):             питання → пошук схожих чанків → Gemini
+ *   1) Підключення (buildRetriever): приєднується до Chroma-колекції, наповненої `npm run ingest`.
+ *   2) Запит       (ask):           питання → пошук схожих чанків → Gemini
  */
 import "dotenv/config";
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 
 import {
-  EMBEDDINGS_MODEL,
   CHAT_MODEL,
   CHAT_TEMPERATURE,
-  CHUNK_SIZE,
-  CHUNK_OVERLAP,
   RETRIEVER_K,
-  FAQ_DATA_DIR,
-  FAQ_FILE_NAME,
+  CHROMA_URL,
+  CHROMA_COLLECTION,
 } from "./constants.js";
 import { SYSTEM_PROMPT } from "./prompts.js";
+import { getEmbeddings } from "./embeddings.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const FAQ_PATH = join(__dirname, "..", FAQ_DATA_DIR, FAQ_FILE_NAME);
-
-/**
- * Модель embeddings — перетворює текст на вектор (масив чисел, що кодує зміст).
- * Працює ЛОКАЛЬНО через transformers.js: без API-ключа й без оплати.
- * Перший запуск завантажить модель (~30 МБ) і закешує її.
- */
-export function getEmbeddings() {
-  return new HuggingFaceTransformersEmbeddings({
-    model: EMBEDDINGS_MODEL,
-  });
-}
+export { getEmbeddings };
 
 /**
- * ФАЗА 1 — Індексація.
- * Читає базу знань, ріже на чанки, рахує embeddings і складає у векторне
- * сховище в памʼяті. Повертає retriever — обʼєкт, що вміє шукати найсхожіші
- * чанки за змістом питання.
+ * ФАЗА 1 — Підключення до індексу.
+ * На відміну від попередньої версії, нічого не індексує на старті:
+ * приєднується до колекції Chroma, яку наповнив `npm run ingest`.
  */
 export async function buildRetriever() {
-  const raw = await readFile(FAQ_PATH, "utf-8");
-
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: CHUNK_SIZE,
-    chunkOverlap: CHUNK_OVERLAP,
+  const store = new Chroma(getEmbeddings(), {
+    collectionName: CHROMA_COLLECTION,
+    url: CHROMA_URL,
   });
-  const docs = await splitter.createDocuments([raw]);
 
-  const vectorStore = await MemoryVectorStore.fromDocuments(docs, getEmbeddings());
+  const collection = await store.ensureCollection();
+  if ((await collection.count()) === 0) {
+    throw new Error(
+      `Колекція "${CHROMA_COLLECTION}" порожня. Спершу проіндексуй базу знань: npm run ingest`,
+    );
+  }
 
   // k: RETRIEVER_K — скільки найрелевантніших чанків повертати на кожне питання.
-  return vectorStore.asRetriever({ k: RETRIEVER_K });
+  return store.asRetriever({ k: RETRIEVER_K });
 }
 
 type Retriever = Awaited<ReturnType<typeof buildRetriever>>;
-
-
 
 /**
  * Збирає RAG-ланцюг: retriever (пошук) + промпт + Gemini (генерація).
@@ -78,12 +58,8 @@ type Retriever = Awaited<ReturnType<typeof buildRetriever>>;
  */
 export async function createRagChain(retriever: Retriever) {
   const llm = new ChatGoogleGenerativeAI({
-    // Gemini 2.5 Flash-Lite — найшвидша й найдешевша модель Gemini, ідеальна
-    // для FAQ (простий, масовий Q&A). Для складніших відповідей можна змінити
-    // на "gemini-2.5-flash" або "gemini-2.5-pro".
-    // Ключ береться з GOOGLE_API_KEY (див. .env.example).
     model: CHAT_MODEL,
-    temperature: CHAT_TEMPERATURE, // детерміновані відповіді — добре для FAQ
+    temperature: CHAT_TEMPERATURE,
   });
 
   const prompt = ChatPromptTemplate.fromMessages([

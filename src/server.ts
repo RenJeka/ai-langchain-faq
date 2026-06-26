@@ -29,13 +29,27 @@ app.post("/api/ask", async (req, res) => {
     res.json({ answer: result.answer });
   } catch (err) {
     console.error(err);
+    // Gemini періодично віддає 503 (перевантажений) або 429 (ліміт) — це тимчасово
+    // й не наша помилка. Повертаємо зрозуміле повідомлення, а не сухий 500.
+    const status = (err as { status?: number })?.status;
+    if (status === 503 || status === 429) {
+      return res.status(503).json({
+        error: "Модель Gemini зараз перевантажена. Спробуйте, будь ласка, ще раз за кілька секунд.",
+      });
+    }
     res.status(500).json({ error: "Внутрішня помилка сервера." });
   }
 });
 
 async function main() {
-  console.log("Будую базу знань (індексація)...");
-  const retriever = await buildRetriever();
+  console.log("Підключаюся до векторної БД...");
+  let retriever;
+  try {
+    retriever = await buildRetriever();
+  } catch (err) {
+    console.error((err as Error).message);
+    process.exit(1);
+  }
   chain = await createRagChain(retriever);
 
   app.listen(PORT, () => {
