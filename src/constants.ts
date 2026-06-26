@@ -1,6 +1,13 @@
 export const EMBEDDINGS_MODEL = "Xenova/multilingual-e5-small";
 
-export const CHAT_MODEL = "gemini-2.5-flash-lite";
+// gemini-2.5-flash-lite - найдешевша/найшвидша — добре для FAQ
+// gemini-2.5-flash - потужніша
+// gemma-4-31b-it
+// gemini-3.1-flash-lite
+
+// limits: https://aistudio.google.com/rate-limit?timeRange=last-28-days&project=gen-lang-client-0908354614
+
+export const CHAT_MODEL = "gemini-3.1-flash-lite";
 export const CHAT_TEMPERATURE = 0;
 
 // E5 обрізає вхід на ~512 токенів — тримаємо чанки помірними.

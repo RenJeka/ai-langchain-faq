@@ -1,4 +1,5 @@
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
+import type { PretrainedOptions } from "@huggingface/transformers";
 import { EMBEDDINGS_MODEL } from "./constants.js";
 
 /**
@@ -19,5 +20,11 @@ export class E5Embeddings extends HuggingFaceTransformersEmbeddings {
 }
 
 export function getEmbeddings(): E5Embeddings {
-  return new E5Embeddings({ model: EMBEDDINGS_MODEL });
+  return new E5Embeddings({
+    model: EMBEDDINGS_MODEL,
+    // fp32 — це поточний дефолт transformers.js на CPU; вказуємо явно лише щоб
+    // прибрати warning "dtype not specified". Вектори не змінюються — переіндексація
+    // не потрібна. (Типи @langchain звужують pretrainedOptions, тож каст.)
+    pretrainedOptions: { dtype: "fp32" } as unknown as PretrainedOptions,
+  });
 }

@@ -7,8 +7,9 @@
 - **Векторизація (embeddings)** — **локально й безкоштовно** через transformers.js
   (`multilingual-e5-small`, офлайн).
 - **Векторна БД** — **Chroma** (Docker, персистентна).
-- **Відповідь генерує** Gemini 2.5 Flash-Lite (`@langchain/google-genai`) — потрібен
-  лише ключ Google AI.
+- **Відповідь генерує** Gemini (`@langchain/google-genai`) — модель задається
+  `CHAT_MODEL` у `src/constants.ts` (зараз `gemini-3.1-flash-lite`); потрібен лише
+  ключ Google AI.
 - Інтерфейси: **CLI**, **Express API** і **міні React UI**. Усі три користуються
   одним ядром — `src/rag.ts`.
 
