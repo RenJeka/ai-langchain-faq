@@ -7,7 +7,8 @@
   "scripts": {
     "cli": "tsx src/cli.ts",
     "server": "tsx src/server.ts",
-    "web": "npm --prefix web run dev"
+    "web": "npm --prefix web run dev",
+    "ingest": "tsx src/ingest.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.3.3",
@@ -15,7 +16,9 @@
     "@langchain/core": "^0.3.80",
     "@langchain/google-genai": "^0.2.18",
     "@langchain/textsplitters": "^0.1.0",
+    "chromadb": "^1.10.5",
     "cors": "^2.8.5",
+    "docling-sdk": "^2.0.6",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "langchain": "^0.3.11"

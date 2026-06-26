@@ -1,12 +1,19 @@
-export const EMBEDDINGS_MODEL = "Xenova/all-MiniLM-L6-v2";
+export const EMBEDDINGS_MODEL = "Xenova/multilingual-e5-small";
 
 export const CHAT_MODEL = "gemini-2.5-flash-lite";
 export const CHAT_TEMPERATURE = 0;
 
-export const CHUNK_SIZE = 500;
-export const CHUNK_OVERLAP = 50;
-export const RETRIEVER_K = 3;
+// E5 обрізає вхід на ~512 токенів — тримаємо чанки помірними.
+export const CHUNK_SIZE = 1000;
+export const CHUNK_OVERLAP = 150;
+export const RETRIEVER_K = 4;
 
 export const SERVER_PORT = 3000;
-export const FAQ_DATA_DIR = "data";
-export const FAQ_FILE_NAME = "faq.md";
+
+export const DATA_DIR = "data";
+export const PDF_FILE_NAME = "strategiya-2026-2028.pdf";
+export const MARKDOWN_CACHE_NAME = "strategiya-2026-2028.md";
+
+export const CHROMA_URL = process.env.CHROMA_URL ?? "http://localhost:8000";
+export const CHROMA_COLLECTION = "strategiya";
+export const DOCLING_URL = process.env.DOCLING_URL ?? "http://localhost:5001";
