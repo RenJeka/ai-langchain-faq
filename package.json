@@ -1,0 +1,30 @@
+{
+  "name": "ai-langchain-faq",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Мінімальний LangChain.js FAQ-бот (RAG): локальні embeddings + Gemini",
+  "scripts": {
+    "cli": "tsx src/cli.ts",
+    "server": "tsx src/server.ts",
+    "web": "npm --prefix web run dev"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.3.3",
+    "@langchain/community": "^0.3.24",
+    "@langchain/core": "^0.3.80",
+    "@langchain/google-genai": "^0.2.18",
+    "@langchain/textsplitters": "^0.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "langchain": "^0.3.11"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
