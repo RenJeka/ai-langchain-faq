@@ -16,4 +16,9 @@ export const MARKDOWN_CACHE_NAME = "strategiya-2026-2028.md";
 
 export const CHROMA_URL = process.env.CHROMA_URL ?? "http://localhost:8000";
 export const CHROMA_COLLECTION = "strategiya";
-export const DOCLING_URL = process.env.DOCLING_URL ?? "http://localhost:5001";
+export const DOCLING_URL = process.env.DOCLING_URL ?? "http://localhost:5002";
+// Конвертація PDF на CPU може тривати хвилини — даємо клієнту запас (15 хв).
+// Дефолтний таймаут docling-sdk закороткий і рве запит передчасно.
+export const DOCLING_TIMEOUT_MS = 900_000;
+// PDF born-digital (має текстовий шар) — OCR лише сповільнює і дає порожній результат.
+export const DOCLING_DO_OCR = false;

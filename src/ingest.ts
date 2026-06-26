@@ -14,6 +14,8 @@ import {
   PDF_FILE_NAME,
   MARKDOWN_CACHE_NAME,
   DOCLING_URL,
+  DOCLING_TIMEOUT_MS,
+  DOCLING_DO_OCR,
   CHROMA_URL,
   CHROMA_COLLECTION,
 } from "./constants.js";
@@ -39,9 +41,12 @@ async function pdfToMarkdown(): Promise<string> {
   }
 
   console.log("Конвертую PDF через docling-serve (це може зайняти час)...");
-  const client = new Docling({ api: { baseUrl: DOCLING_URL } });
+  const client = new Docling({ api: { baseUrl: DOCLING_URL, timeout: DOCLING_TIMEOUT_MS } });
   const buffer = await readFile(dataPath(PDF_FILE_NAME));
-  const result = await client.convert(buffer, PDF_FILE_NAME, { to_formats: ["md"] });
+  const result = await client.convert(buffer, PDF_FILE_NAME, {
+    to_formats: ["md"],
+    do_ocr: DOCLING_DO_OCR,
+  });
   const markdown = result.document.md_content;
   if (!markdown) throw new Error("docling-serve не повернув Markdown-контент");
 

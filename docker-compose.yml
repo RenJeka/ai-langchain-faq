@@ -10,5 +10,10 @@ services:
   docling-serve:
     image: quay.io/docling-project/docling-serve:latest
     ports:
-      - "5001:5001"
+      # Хост-порт 5002, бо 5001 на macOS часто зайнятий (AirDrop/AirDroid/ControlCenter).
+      - "5002:5001"
+    environment:
+      # Синхронна конвертація PDF на CPU триває ~140с; дефолтні 120с дають 504.
+      # Піднімаємо ліміт очікування sync-ендпоінта, щоб клієнт дочекався результату.
+      - DOCLING_SERVE_MAX_SYNC_WAIT=600
     restart: unless-stopped
