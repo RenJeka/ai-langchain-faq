@@ -20,8 +20,20 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { createRetrievalChain } from "langchain/chains/retrieval";
 
+import {
+  EMBEDDINGS_MODEL,
+  CHAT_MODEL,
+  CHAT_TEMPERATURE,
+  CHUNK_SIZE,
+  CHUNK_OVERLAP,
+  RETRIEVER_K,
+  FAQ_DATA_DIR,
+  FAQ_FILE_NAME,
+} from "./constants.js";
+import { SYSTEM_PROMPT } from "./prompts.js";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const FAQ_PATH = join(__dirname, "..", "data", "faq.md");
+const FAQ_PATH = join(__dirname, "..", FAQ_DATA_DIR, FAQ_FILE_NAME);
 
 /**
  * Модель embeddings — перетворює текст на вектор (масив чисел, що кодує зміст).
@@ -30,7 +42,7 @@ const FAQ_PATH = join(__dirname, "..", "data", "faq.md");
  */
 export function getEmbeddings() {
   return new HuggingFaceTransformersEmbeddings({
-    model: "Xenova/all-MiniLM-L6-v2",
+    model: EMBEDDINGS_MODEL,
   });
 }
 
@@ -44,26 +56,20 @@ export async function buildRetriever() {
   const raw = await readFile(FAQ_PATH, "utf-8");
 
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 500,
-    chunkOverlap: 50,
+    chunkSize: CHUNK_SIZE,
+    chunkOverlap: CHUNK_OVERLAP,
   });
   const docs = await splitter.createDocuments([raw]);
 
   const vectorStore = await MemoryVectorStore.fromDocuments(docs, getEmbeddings());
 
-  // k: 3 — повертати 3 найрелевантніші чанки на кожне питання.
-  return vectorStore.asRetriever({ k: 3 });
+  // k: RETRIEVER_K — скільки найрелевантніших чанків повертати на кожне питання.
+  return vectorStore.asRetriever({ k: RETRIEVER_K });
 }
 
 type Retriever = Awaited<ReturnType<typeof buildRetriever>>;
 
-const SYSTEM_PROMPT = `Ти — помічник FAQ застосунку Lumio. Відповідай на питання
-користувача, спираючись ВИКЛЮЧНО на наведений нижче контекст. Якщо у контексті
-немає відповіді — чесно скажи, що не маєш цієї інформації, і не вигадуй.
-Відповідай стисло й тією ж мовою, що й питання.
 
-Контекст:
-{context}`;
 
 /**
  * Збирає RAG-ланцюг: retriever (пошук) + промпт + Gemini (генерація).
@@ -76,8 +82,8 @@ export async function createRagChain(retriever: Retriever) {
     // для FAQ (простий, масовий Q&A). Для складніших відповідей можна змінити
     // на "gemini-2.5-flash" або "gemini-2.5-pro".
     // Ключ береться з GOOGLE_API_KEY (див. .env.example).
-    model: "gemini-2.5-flash-lite",
-    temperature: 0, // детерміновані відповіді — добре для FAQ
+    model: CHAT_MODEL,
+    temperature: CHAT_TEMPERATURE, // детерміновані відповіді — добре для FAQ
   });
 
   const prompt = ChatPromptTemplate.fromMessages([

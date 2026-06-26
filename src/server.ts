@@ -9,8 +9,9 @@ import express from "express";
 import cors from "cors";
 
 import { buildRetriever, createRagChain, ask, type RagChain } from "./rag.js";
+import { SERVER_PORT } from "./constants.js";
 
-const PORT = 3000;
+const PORT = SERVER_PORT;
 
 const app = express();
 app.use(cors());
