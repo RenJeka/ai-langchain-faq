@@ -37,7 +37,7 @@ export function App() {
       <h1>LangChain FAQ</h1>
       <p style={{ color: "#666" }}>
         Постав питання про Lumio — відповідь будується через RAG (пошук схожих
-        чанків + Claude).
+        чанків + Gemini).
       </p>
 
       <textarea
