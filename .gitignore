@@ -144,6 +144,3 @@ vite.config.ts.timestamp-*
 
 # Docker volumes
 .chroma/
-
-# Generated data files
-data/strategiya-2026-2028.md
