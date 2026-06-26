@@ -5,14 +5,14 @@
  * цими ж функціями — UI лише викликає API. Дві фази:
  *
  *   1) Індексація  (buildRetriever):  faq.md → чанки → embeddings → vector store
- *   2) Запит       (ask):             питання → пошук схожих чанків → Claude
+ *   2) Запит       (ask):             питання → пошук схожих чанків → Gemini
  */
 import "dotenv/config";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
@@ -66,20 +66,17 @@ const SYSTEM_PROMPT = `Ти — помічник FAQ застосунку Lumio.
 {context}`;
 
 /**
- * Збирає RAG-ланцюг: retriever (пошук) + промпт + Claude (генерація).
+ * Збирає RAG-ланцюг: retriever (пошук) + промпт + Gemini (генерація).
  * createRetrievalChain автоматично: бере питання → отримує чанки з retriever →
- * підставляє їх у {context} → надсилає Claude → повертає відповідь.
+ * підставляє їх у {context} → надсилає Gemini → повертає відповідь.
  */
 export async function createRagChain(retriever: Retriever) {
-  const llm = new ChatAnthropic({
-    // Haiku 4.5 — швидка й дешева модель, ідеальна для FAQ (простий, масовий Q&A).
-    // Можна замінити на "claude-sonnet-4-6", якщо потрібні складніші відповіді.
-    //
-    // Важливо: ця версія @langchain/anthropic завжди надсилає temperature/top_p/
-    // top_k у запиті, а моделі Opus 4.7/4.8 ці параметри відхиляють (HTTP 400).
-    // Тому для Opus спершу онови @langchain/anthropic до версії, що підтримує
-    // adaptive thinking без sampling-параметрів.
-    model: "claude-haiku-4-5",
+  const llm = new ChatGoogleGenerativeAI({
+    // Gemini 2.5 Flash-Lite — найшвидша й найдешевша модель Gemini, ідеальна
+    // для FAQ (простий, масовий Q&A). Для складніших відповідей можна змінити
+    // на "gemini-2.5-flash" або "gemini-2.5-pro".
+    // Ключ береться з GOOGLE_API_KEY (див. .env.example).
+    model: "gemini-2.5-flash-lite",
     temperature: 0, // детерміновані відповіді — добре для FAQ
   });
 
